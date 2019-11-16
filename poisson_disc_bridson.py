@@ -7,6 +7,8 @@ from driver import genCircleCoords
 
 import matplotlib.pyplot as plt # For displaying array as image
 
+from scipy.spatial import Voronoi, voronoi_plot_2d # For generating Voronoi graphs - https://docs.scipy.org/doc/scipy-0.18.1/reference/generated/scipy.spatial.Voronoi.html
+from scipy.spatial import Delaunay # For generating Delaunay - https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.spatial.Delaunay.html
 
 def euclidean_distance(a, b):
 	dx = a[0] - b[0]
@@ -47,14 +49,13 @@ def poisson_disc_samples(width, height, r, k=5, distance=euclidean_distance, ran
 	print("Segments: ", segments)
 	# Generate the list of circle Perimeters.
 	circlePerimeter = genCircleCoords(width, height, center, radius, segments=segments )
-	print(circlePerimeter)
+	#print(circlePerimeter)
 
 	# Find the actual r
 	'''
 		This is a very interesting value.  If we use a static value, it can make for a very dense grid.
 		However, if we use the actual distance between the perimeter points, it is inversely proportional to the number of segments.
 	'''
-
 	r = xsize
 	for i in range(len(circlePerimeter)-1):
 		r = min(distance(circlePerimeter[i], circlePerimeter[i+1]), r)
@@ -79,9 +80,8 @@ def poisson_disc_samples(width, height, r, k=5, distance=euclidean_distance, ran
 
 	for coords in circlePerimeter:
 		insert_coords(coords, grid)
-	# remove last item.
-	grid = grid[:-1]
-	#print(grid)
+
+
 
 	'''
 		The algorithm assumes the canvas is blank and needs to always insert a single value.  
@@ -90,9 +90,14 @@ def poisson_disc_samples(width, height, r, k=5, distance=euclidean_distance, ran
 		
 		Because the algorithm assumes that the canvas is blank, it ALWAYS retains the first p.
 	'''
+	if not forceCenter:
+		# remove last item.
+		grid = grid[:-1]
+		p = circlePerimeter[-1]
+	else:
+		p = centerx, centery
 	#p = width * random(), height * random()
 	#queue = [p]
-	p = circlePerimeter[-1]
 	queue = [p]
 	grid_x, grid_y = grid_coords(p)
 	grid[grid_x + grid_y * grid_width] = p
@@ -115,16 +120,24 @@ def poisson_disc_samples(width, height, r, k=5, distance=euclidean_distance, ran
 				continue
 			queue.append(p)
 			grid[grid_x + grid_y * grid_width] = p
-	print(grid)
+	#print(grid)
 	return [p for p in grid if p is not None]
 
-useSegmentRadius = False
+
+'''
+	Settings.
+	
+'''
+useSegmentRadius = False # When set to True, will use the minimum distance between perimeter points.  False will use 60% of perimeter point distance.
+forceCenter = False # When set to True, will force inject the center point onto canvas.
+genVoronoi = True
+
 rRatio = 0.6
-k = 50
-xsize = 100 # Should be multiple of 20.
-ysize = 100 # Should be multiple of 20.
+k = 100
+xsize = 20 # Should be multiple of 20.
+ysize = 20 # Should be multiple of 20.
 startTime = int(round(time.time() * 1000))
-samples = poisson_disc_samples(width=xsize, height=ysize, r=10, k=k, segments=20)
+samples = poisson_disc_samples(width=xsize, height=ysize, r=10, k=k, segments=10)
 endTime = int(round(time.time() * 1000))
 
 print("Execution time: " + str(endTime - startTime))
@@ -137,7 +150,18 @@ for coords in samples:
 	yint = int(y)
 	raster[xint][yint] = int(255)
 
-#print(raster)
-plt.imshow(raster)
+
+if not genVoronoi:
+	#print(raster)
+	plt.imshow(raster)
+else:
+	vor = Voronoi(samples)
+	#voronoi_plot_2d(vor)
+	tri = Delaunay(samples)
+	print(samples[: ])
+	#plt.triplot(samples[:, 0], samples[:, 1], tri.simplices.copy())
+	#plt.plot(samples[:, 0], samples[:, 1], 'o')
+
+#plt.imshow(raster)
 plt.gray()
 plt.show()
