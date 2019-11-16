@@ -4,6 +4,7 @@ import time
 import matplotlib
 matplotlib.use('tkagg')
 from driver import genCircleCoords
+import numpy as np
 
 import matplotlib.pyplot as plt # For displaying array as image
 
@@ -81,8 +82,6 @@ def poisson_disc_samples(width, height, r, k=5, distance=euclidean_distance, ran
 	for coords in circlePerimeter:
 		insert_coords(coords, grid)
 
-
-
 	'''
 		The algorithm assumes the canvas is blank and needs to always insert a single value.  
 		We trick the algorithm by inserting the last perimeter coordinate as the first value.
@@ -95,7 +94,7 @@ def poisson_disc_samples(width, height, r, k=5, distance=euclidean_distance, ran
 		grid = grid[:-1]
 		p = circlePerimeter[-1]
 	else:
-		p = centerx, centery
+		p = [centerx, centery]
 	#p = width * random(), height * random()
 	#queue = [p]
 	queue = [p]
@@ -114,7 +113,7 @@ def poisson_disc_samples(width, height, r, k=5, distance=euclidean_distance, ran
 			py = qy + d * sin(alpha)
 			if not (0 <= px < width and 0 <= py < height):
 				continue
-			p = (px, py)
+			p = [px, py]
 			grid_x, grid_y = grid_coords(p)
 			if not fits(p, grid_x, grid_y):
 				continue
@@ -132,13 +131,15 @@ useSegmentRadius = False # When set to True, will use the minimum distance betwe
 forceCenter = False # When set to True, will force inject the center point onto canvas.
 genVoronoi = True
 
-rRatio = 0.6
+rRatio = 0.7
 k = 100
-xsize = 20 # Should be multiple of 20.
-ysize = 20 # Should be multiple of 20.
+xsize = 10 # Should be multiple of 20.
+ysize = 10 # Should be multiple of 20.
 startTime = int(round(time.time() * 1000))
 samples = poisson_disc_samples(width=xsize, height=ysize, r=10, k=k, segments=10)
 endTime = int(round(time.time() * 1000))
+
+samples = np.array(samples) # Need to convert to np array to have proper slicing.
 
 print("Execution time: " + str(endTime - startTime))
 
@@ -152,15 +153,15 @@ for coords in samples:
 
 
 if not genVoronoi:
-	#print(raster)
+	print(raster)
 	plt.imshow(raster)
 else:
 	vor = Voronoi(samples)
 	#voronoi_plot_2d(vor)
 	tri = Delaunay(samples)
-	print(samples[: ])
-	#plt.triplot(samples[:, 0], samples[:, 1], tri.simplices.copy())
-	#plt.plot(samples[:, 0], samples[:, 1], 'o')
+	#print(samples[:,])
+	plt.triplot(samples[:, 0], samples[:, 1], tri.simplices.copy())
+	plt.plot(samples[:, 0], samples[:, 1], 'o')
 
 #plt.imshow(raster)
 plt.gray()

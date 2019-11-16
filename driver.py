@@ -88,9 +88,9 @@ def genCircleCoords(xsize, ysize,  center, radius, segments=5):
 # helper function to calculate point from relative polar coordinates (degrees)
 def polar_point(origin_point, angle,  distance):
     #return (origin_point[0] + math.sin(math.radians(angle)) * distance, origin_point[1] + math.cos(math.radians(angle)) * distance)
-    return (origin_point[0] + math.sin(math.radians(angle)) * distance,
-            origin_point[1] + math.cos(math.radians(angle)) * distance,
-            )
+    return [origin_point[0] + math.sin(math.radians(angle)) * distance,
+            origin_point[1] + math.cos(math.radians(angle)) * distance
+            ]
 
 def drawCircle():
 	circle = genCircle(xsize, ysize)
